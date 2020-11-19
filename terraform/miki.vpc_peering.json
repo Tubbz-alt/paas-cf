@@ -6,6 +6,12 @@
         "subnet_cidr": "172.16.0.0/22"
     },
     {
+        "peer_name": "miki-dev-test-2",
+        "account_id": "595665891067",
+        "vpc_id": "vpc-01f7028b0ecdb4f33",
+        "subnet_cidr": "172.16.4.0/22"
+    },
+    {
         "peer_name": "miki-dev-test-3",
         "account_id": "595665891067",
         "vpc_id": "vpc-041c92ad7d76aa161",

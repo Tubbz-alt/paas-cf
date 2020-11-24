@@ -207,6 +207,7 @@ groups:
     jobs:
       - continuous-smoke-tests
       - continuous-billing-smoke-tests
+      - continuous-leaked-aws-key-check
       - check-certificates
   - name: credentials
     jobs:
@@ -5373,6 +5374,34 @@ jobs:
                 API_ENDPOINT: ((api_endpoint))
                 CF_ADMIN: ((cf_admin))
                 CF_PASS: ((cf_pass))
+
+  - name: continuous-leaked-aws-key-check
+    serial_groups: [smoke-tests]
+    build_logs_to_retain: 10000
+    plan:
+      - in_parallel:
+        - get: billing-smoke-tests-timer
+          trigger: true
+
+      - do:
+        - task: run-leaked-aws-key-check
+          tags: [colocated-with-web]
+          config:
+            platform: linux
+            image_resource: *cf-acceptance-tests-image-resource
+            params:
+              AWS_REGION: ((aws_region))
+              SYSTEM_DNS_ZONE_NAME: ((system_dns_zone_name))
+              DEPLOY_ENV: ((deploy_env))
+            inputs:
+            run:
+              path: sh
+              args:
+                - -e
+                - -u
+                - -c
+                - |
+                  echo "ha!"
 
   - name: check-certificates
     build_logs_to_retain: 50

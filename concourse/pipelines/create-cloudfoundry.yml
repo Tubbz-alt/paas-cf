@@ -5388,7 +5388,7 @@ jobs:
           tags: [colocated-with-web]
           config:
             platform: linux
-            image_resource: *cf-acceptance-tests-image-resource
+            image_resource: *awscli-image-resource
             params:
               AWS_REGION: ((aws_region))
               SYSTEM_DNS_ZONE_NAME: ((system_dns_zone_name))
@@ -5397,11 +5397,63 @@ jobs:
             run:
               path: sh
               args:
-                - -e
                 - -u
                 - -c
                 - |
-                  echo "ha!"
+                  quarantine_policy="snv_test_quarantine_policy"
+                  list_users=$(aws iam list-users | grep UserName | awk -F '"' '{print $4}')
+
+                  ###list all attached user policies
+
+                  compromised=false
+                  target_user_string='paas-s3-broker'
+
+                  for user in ${list_users}; do
+
+                    if test "${user#*$target_user_string}" != "$user"; then
+                      ### Check s3 broker users, only
+
+                      attached_policies=$(aws iam list-attached-user-policies --user-name "${user}" | grep PolicyName | awk -F '"' '{print $4}')
+
+                      for policy in ${attached_policies:-NO_POLICIES}; do
+                       ###Check for the AWS Quarantine policy attached to a user
+                        if [ "${policy}" = "${quarantine_policy}" ]; then
+
+                          echo "User ${user} has policy ${quarantine_policy} attached."
+
+                          access_keys=$(aws iam list-access-keys --user-name ${user} | grep AccessKeyId | awk -F '"' '{print $4}')
+
+                          for key in ${access_keys:-NO_ACCESS_KEYS}; do
+
+                            access_key_status=$(aws iam list-access-keys --user-name ${user} | grep Status | awk -F '"' '{print $4}')
+
+                            if [ "${access_key_status}" = "Active" ]; then
+                              echo "User ${user} has active AWS Access key ${key}."
+                              ### Deactivate the access key
+                              compromised=true
+                              aws iam update-access-key --access-key-id "${key}" --status Inactive --user-name "${user}"
+
+                              ### Check the access key status
+                              access_key_status=$(aws iam list-access-keys --user-name "${user}" | grep Status | awk -F '"' '{print $4}')
+                              if [ "${access_key_status}" = "Inactive" ]; then
+                                echo "AWS Access key ${key} has been deactivated."
+                                echo "Deactivated ${key} for user ${user}." >> slack-messages/leaked_aws_key_message
+                                echo "+++++++++++++++++++++++++++++++++++++++"
+                              fi
+                            fi
+                          done
+                        fi
+                      done
+                    fi
+                  done
+                  if ${compromised}; then
+                    exit 1
+                  else
+                    exit 0
+                  fi
+            outputs:
+              - name: slack-messages
+
 
   - name: check-certificates
     build_logs_to_retain: 50

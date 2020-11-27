@@ -100,7 +100,7 @@
                   metadata:
                     displayName: AWS ElastiCache Redis
                     longDescription: |
-                      Redis is an in-memory data structure project implementing a distributed, in-memory key-value 
+                      Redis is an in-memory data structure project implementing a distributed, in-memory key-value
                       database with optional durability. Redis supports different kinds of abstract data structures,
                       such as strings, lists, maps, sets, sorted sets, HyperLogLogs, bitmaps, streams, and spatial
                       indexes.
@@ -134,6 +134,34 @@
                           version: '3.2'
 
                     # 3.2
+                    - id: 5aa7abf4-c01e-4c98-abde-1c6b47cc4188
+                      name: micro-3.2
+                      description: "500MB RAM, single node, no failover, daily backups (for instances created after 21/1/2019). Free for trial orgs. Costs for billable orgs."
+                      free: true
+                      metadata:
+                        displayName: Micro
+                        AdditionalMetadata:
+                          backups: true
+                          encrypted: true
+                          highlyAvailable: false
+                          memory:
+                            amount: 500
+                            unit: MB
+                          version: '3.2'
+                    - id: f6071416-3888-4a35-9b5c-1a9509429f10
+                      name: micro-ha-3.2
+                      description: 1.5GB RAM, highly-available, daily backups
+                      free: false
+                      metadata:
+                        displayName: Micro
+                        AdditionalMetadata:
+                          backups: true
+                          encrypted: true
+                          highlyAvailable: true
+                          memory:
+                            amount: 1500
+                            unit: MB
+                          version: '3.2'
                     - id: c84d1bef-9500-4ce9-88b2-c0bd421bbf8a
                       name: tiny-3.2
                       description: "568MB RAM, single node, no failover, daily backups (for instances created after 21/1/2019). Free for trial orgs. Costs for billable orgs."
@@ -192,6 +220,34 @@
                           version: '3.2'
 
                     # 4.x
+                    - id: 54d9b297-4435-404e-a07a-948c73ab2013
+                      name: micro-4.x
+                      description: "500MB RAM, single node, no failover, daily backups (for instances created after 21/1/2019). Free for trial orgs. Costs for billable orgs."
+                      free: true
+                      metadata:
+                        displayName: Micro
+                        AdditionalMetadata:
+                          backups: true
+                          encrypted: true
+                          highlyAvailable: false
+                          memory:
+                            amount: 500
+                            unit: MB
+                          version: '4'
+                    - id: b38370ad-b9ec-4522-be3c-8a1ea9c8c7e7
+                      name: micro-ha-4.x
+                      description: 1.5GB RAM, highly-available, daily backups
+                      free: false
+                      metadata:
+                        displayName: Tiny
+                        AdditionalMetadata:
+                          backups: true
+                          encrypted: true
+                          highlyAvailable: true
+                          memory:
+                            amount: 1500
+                            unit: MB
+                          version: '4'
                     - id: b78c9d07-a031-495f-937c-28613905431c
                       name: tiny-4.x
                       description: "1.5GB RAM, single node, no failover, daily backups (for instances created after 21/1/2019). Free for trial orgs. Costs for billable orgs."
@@ -392,6 +448,19 @@
                           version: '5'
 
             plan_configs:
+              5aa7abf4-c01e-4c98-abde-1c6b47cc4188: #micro-3.2
+                <<: *elasticache_cache_cluster_config # yamllint disable-line
+                <<: *elasticache_redis_3_2 # yamllint disable-line
+                <<: *elasticache_non_ha_plan # yamllint disable-line
+                instance_type: cache.t3.micro
+                automatic_failover_enabled: false
+
+              f6071416-3888-4a35-9b5c-1a9509429f10: #micro-ha-3.2
+                <<: *elasticache_cache_cluster_config # yamllint disable-line
+                <<: *elasticache_redis_3_2 # yamllint disable-line
+                <<: *elasticache_ha_plan # yamllint disable-line
+                <<: *elasticache_micro_plan # yamllint disable-line
+
               3a51701c-eef3-447c-882b-907ad2bcb7ab: #tiny-clustered-3.2
                 <<: *elasticache_cache_cluster_config # yamllint disable-line
                 <<: *elasticache_redis_3_2 # yamllint disable-line
@@ -424,6 +493,18 @@
                 <<: *elasticache_redis_3_2 # yamllint disable-line
                 <<: *elasticache_ha_plan # yamllint disable-line
                 <<: *elasticache_medium_plan # yamllint disable-line
+
+              54d9b297-4435-404e-a07a-948c73ab2013: #micro-4.x
+                <<: *elasticache_cache_cluster_config # yamllint disable-line
+                <<: *elasticache_redis_4_x # yamllint disable-line
+                <<: *elasticache_non_ha_plan # yamllint disable-line
+                <<: *elasticache_micro_plan # yamllint disable-line
+
+              b38370ad-b9ec-4522-be3c-8a1ea9c8c7e7: #micro-ha-4.x
+                <<: *elasticache_cache_cluster_config # yamllint disable-line
+                <<: *elasticache_redis_4_x # yamllint disable-line
+                <<: *elasticache_ha_plan # yamllint disable-line
+                <<: *elasticache_micro_plan # yamllint disable-line
 
               b78c9d07-a031-495f-937c-28613905431c: #tiny-4.x
                 <<: *elasticache_cache_cluster_config # yamllint disable-line

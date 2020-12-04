@@ -431,6 +431,11 @@ resources:
       stop: 5:00 PM
       days: [Monday, Tuesday, Wednesday, Thursday, Friday]
 
+  - name: leaked-aws-key-check-timer
+    type: time
+    source:
+      interval: 1m
+
   - name: check-certificates-timer
     type: time
     source:
@@ -5390,7 +5395,7 @@ jobs:
     build_logs_to_retain: 10000
     plan:
       - in_parallel:
-        - get: billing-smoke-tests-timer
+        - get: leaked-aws-key-check-timer
           trigger: true
 
       - do:

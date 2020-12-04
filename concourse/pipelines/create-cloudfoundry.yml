@@ -243,6 +243,11 @@ resource_types:
     repository: ghcr.io/alphagov/paas/grafana-annotation-resource
     tag: 140506423e1194319fc1e2ed7f8d04a36ca61ae3
 
+- name: slack-notification-resource
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+
 resources:
   - name: pipeline-trigger
     type: semver-iam
@@ -555,6 +560,11 @@ resources:
       template: |
         ${BUILD_PIPELINE_NAME}/${BUILD_JOB_NAME}
         ${ATC_EXTERNAL_URL}/teams/${BUILD_TEAM_NAME}/pipelines/${BUILD_PIPELINE_NAME}/jobs/${BUILD_JOB_NAME}/builds/${BUILD_NAME}
+
+  - name: slack-notification
+    type: slack-notification-resource
+    source:
+      url: ((slack_webhook_cyber_testing))
 
 jobs:
   - name: pipeline-lock
@@ -5393,6 +5403,7 @@ jobs:
               AWS_REGION: ((aws_region))
               SYSTEM_DNS_ZONE_NAME: ((system_dns_zone_name))
               DEPLOY_ENV: ((deploy_env))
+              SLACK_WEBHOOK_URL: ((slack_webhook_cyber_testing))
             inputs:
             run:
               path: sh
@@ -5454,6 +5465,14 @@ jobs:
             outputs:
               - name: slack-messages
 
+    on_failure: &slack_failure_notification
+      params:
+        alert_type: 'failed'
+        channel: '#cyber-test-alerts'
+        username: 'GOV.UK PaaS compromised S3 key(s)'
+        icon_emoji: ':cyberowl:'
+        text_file: slack-messages/leaked_aws_key_message
+      put: slack-notification
 
   - name: check-certificates
     build_logs_to_retain: 50
